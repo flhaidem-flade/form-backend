@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Form</title>
+</head>
+<body>
+
+<h2>Signup Form</h2>
+
+<form id="myForm">
+
+  <input type="text" id="name" placeholder="Name" required>
+  <br><br>
+
+  <input type="email" id="email" placeholder="Email" required>
+  <br><br>
+
+  <input type="password" id="password" placeholder="Password" required>
+  <br><br>
+
+  <button type="submit">Submit</button>
+
+</form>
+
+<script>
+document.getElementById("myForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value
+  };
+
+  const res = await fetch("http://localhost:3000/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  console.log(result);
+  alert("Form sent successfully!");
+});
+</script>
+
+</body>
+</html>
