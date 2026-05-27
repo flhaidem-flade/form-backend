@@ -9,28 +9,74 @@ app.use(express.json());
 
 let messages = [];
 
-// HOME TEST ROUTE (IMPORTANT)
+// Home route
 app.get("/", (req, res) => {
   res.send("Backend is working 🚀");
 });
 
-// SUBMIT ROUTE
+// Submit route
 app.post("/submit", (req, res) => {
   const { name, email, message } = req.body;
 
-  messages.push({ name, email, message });
+  messages.push({
+    name,
+    email,
+    message
+  });
 
-  res.json({ success: true });
+  res.json({
+    success: true,
+    message: "Message received"
+  });
 });
 
-// DATA DASHBOARD
+// Dashboard route
 app.get("/data", (req, res) => {
+
   let html = `
-  <h1>Messages</h1>
-  <p>Total: ${messages.length}</p>
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Dashboard</title>
+    <style>
+      body{
+        font-family: Arial;
+        background:#0f172a;
+        color:white;
+        padding:20px;
+      }
+
+      .card{
+        background:#1e293b;
+        padding:15px;
+        margin:10px 0;
+        border-radius:10px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h1>Messages (${messages.length})</h1>
   `;
 
-  messages.forEach(m => {
+  [...messages].reverse().forEach(msg => {
     html += `
-      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-        <b>${m.name}</
+      <div class="card">
+        <h3>${msg.name}</h3>
+        <p>${msg.email}</p>
+        <p>${msg.message}</p>
+      </div>
+    `;
+  });
+
+  html += `
+  </body>
+  </html>
+  `;
+
+  res.send(html);
+});
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
