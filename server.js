@@ -1,96 +1,103 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware to read JSON
-app.use(express.json());
-
-// File where data is stored permanently
-const DATA_FILE = path.join(__dirname, "data.json");
-
-// Helper: read data safely
-function readData() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, "[]");
-    }
-    const data = fs.readFileSync(DATA_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    return [];
-  }
-}
-
-// Helper: write data
-function writeData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-/**
- * HOME ROUTE
- */
-app.get("/", (req, res) => {
-  res.send("Form Backend is running 🚀");
-});
-
-/**
- * SUBMIT FORM DATA
- */
-app.post("/submit", (req, res) => {
-  const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
-
-  const newEntry = {
-    name,
-    email,
-    message,
-    time: new Date().toISOString()
-  };
-
-  // Read existing data
-  const data = readData();
-
-  // Add new entry
-  data.push(newEntry);
-
-  // Save back to file
-  writeData(data);
-
-  // 🔥 REAL-TIME LOG IN TERMUX
-  console.log("🔥 New Form Submission:");
-  console.log(newEntry);
-
-  res.json({
-    status: "success",
-    message: "Form submitted successfully"
-  });
-});
-
-/**
- * GET ALL FORM DATA
- */
 app.get("/data", (req, res) => {
-  const data = readData();
-  res.json(data);
-});
+  let html = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-/**
- * DELETE ALL DATA (optional admin tool)
- */
-app.delete("/data", (req, res) => {
-  writeData([]);
-  res.json({ status: "cleared" });
-});
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial;
+        background: #0f172a;
+        color: white;
+        padding: 20px;
+      }
 
-/**
- * START SERVER
- */
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #38bdf8;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: auto;
+      }
+
+      .card {
+        background: rgba(255,255,255,0.06);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: 0.3s;
+      }
+
+      .card:hover {
+        transform: scale(1.02);
+        border-color: #38bdf8;
+      }
+
+      .name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #38bdf8;
+      }
+
+      .email {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-bottom: 8px;
+      }
+
+      .message {
+        font-size: 15px;
+        color: #e2e8f0;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .count {
+        background: #38bdf8;
+        color: black;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+
+      <div class="topbar">
+        <h1>📊 Admin Dashboard</h1>
+        <div class="count">${messages.length} messages</div>
+      </div>
+  `;
+
+  messages.reverse().forEach(msg => {
+    html += `
+      <div class="card">
+        <div class="name">${msg.name}</div>
+        <div class="email">${msg.email}</div>
+        <div class="message">${msg.message}</div>
+      </div>
+    `;
+  });
+
+  html += `
+    </div>
+  </body>
+  </html>
+  `;
+
+  res.send(html);
 });
