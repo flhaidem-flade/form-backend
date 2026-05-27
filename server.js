@@ -1,72 +1,96 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware to read JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Gmail transporter (USES .env)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASS
-  }
-});
+// File where data is stored permanently
+const DATA_FILE = path.join(__dirname, "data.json");
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("🚀 Server is running");
-});
-
-// Form endpoint
-app.post("/send", async (req, res) => {
+// Helper: read data safely
+function readData() {
   try {
-    const { name, email, message } = req.body;
-
-    console.log("📩 Received:", req.body);
-
-    if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing fields"
-      });
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, "[]");
     }
-
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: process.env.EMAIL,
-      subject: "New Form Submission",
-      text: `
-New message from website:
-
-Name: ${name}
-Email: ${email}
-Message: ${message}
-      `
-    });
-
-    res.json({
-      success: true,
-      message: "Email sent successfully"
-    });
-
+    const data = fs.readFileSync(DATA_FILE, "utf8");
+    return JSON.parse(data);
   } catch (err) {
-    console.error("❌ Backend error:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Email failed",
-      error: err.toString()
-    });
+    return [];
   }
+}
+
+// Helper: write data
+function writeData(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+/**
+ * HOME ROUTE
+ */
+app.get("/", (req, res) => {
+  res.send("Form Backend is running 🚀");
 });
 
-// Start server
+/**
+ * SUBMIT FORM DATA
+ */
+app.post("/submit", (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const newEntry = {
+    name,
+    email,
+    message,
+    time: new Date().toISOString()
+  };
+
+  // Read existing data
+  const data = readData();
+
+  // Add new entry
+  data.push(newEntry);
+
+  // Save back to file
+  writeData(data);
+
+  // 🔥 REAL-TIME LOG IN TERMUX
+  console.log("🔥 New Form Submission:");
+  console.log(newEntry);
+
+  res.json({
+    status: "success",
+    message: "Form submitted successfully"
+  });
+});
+
+/**
+ * GET ALL FORM DATA
+ */
+app.get("/data", (req, res) => {
+  const data = readData();
+  res.json(data);
+});
+
+/**
+ * DELETE ALL DATA (optional admin tool)
+ */
+app.delete("/data", (req, res) => {
+  writeData([]);
+  res.json({ status: "cleared" });
+});
+
+/**
+ * START SERVER
+ */
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

@@ -1,66 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Contact Form</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    form {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      width: 320px;
-    }
-
-    input, textarea {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #38bdf8;
-      border: none;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    button:hover {
-      background: #0ea5e9;
-    }
-  </style>
-</head>
-<body>
-
-<form id="myForm">
-  <h2>Contact Me</h2>
-
-  <input type="text" id="name" placeholder="Name" required>
-  <input type="email" id="email" placeholder="Email" required>
+<form id="contactForm">
+  <input id="name" placeholder="Name" required />
+  <input id="email" placeholder="Email" required />
   <textarea id="message" placeholder="Message" required></textarea>
 
   <button type="submit">Send</button>
 </form>
 
 <script>
-document.getElementById("myForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+const form = document.getElementById("contactForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault(); // IMPORTANT
 
   const data = {
     name: document.getElementById("name").value,
@@ -68,17 +18,24 @@ document.getElementById("myForm").addEventListener("submit", async function(e) {
     message: document.getElementById("message").value
   };
 
-  await fetch("https://toe-toronto-magnet-fence.trycloudflare.com/submit", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
+  try {
+    const res = await fetch("https://form-backend-j42i.onrender.com/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
 
-  alert("Message sent successfully!");
+    const result = await res.json();
+
+    console.log(result);
+    alert("Form sent successfully ✅");
+
+    form.reset();
+  } catch (err) {
+    console.error(err);
+    alert("Error sending form ❌");
+  }
 });
 </script>
-
-</body>
-</html>

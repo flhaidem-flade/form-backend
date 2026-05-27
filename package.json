@@ -16,5 +16,13 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "nodemailer": "^8.0.9"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flhaidem-flade/form-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flhaidem-flade/form-backend/issues"
+  },
+  "homepage": "https://github.com/flhaidem-flade/form-backend#readme"
 }
